@@ -4,7 +4,8 @@ const DEFAULT_SETTINGS = [
   { key: 'color_nouveau', value: '#3b82f6' },
   { key: 'color_inProgress', value: '#f59e0b' },
   { key: 'color_termine', value: '#10b981' },
-  { key: 'selected_language_id', value: '1' }
+  { key: 'selected_language_id', value: '1' },
+  { key: 'reopen_ceiling_percentage', value: '100' }
 ];
 
 const DEFAULT_LANGUAGES = [
@@ -58,7 +59,9 @@ const TABLE_DEFINITIONS = {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       percentage REAL,
       calculation_mode INTEGER,
-      base_cost REAL
+      base_cost REAL,
+      is_cancelled INTEGER NOT NULL DEFAULT 0,
+      cancelled_at TEXT
     )
   `
 };
@@ -71,6 +74,8 @@ const migrateTicketCosts = () => {
     ['percentage', 'ALTER TABLE ticket_costs ADD COLUMN percentage REAL'],
     ['calculation_mode', 'ALTER TABLE ticket_costs ADD COLUMN calculation_mode INTEGER'],
     ['base_cost', 'ALTER TABLE ticket_costs ADD COLUMN base_cost REAL'],
+    ['is_cancelled', 'ALTER TABLE ticket_costs ADD COLUMN is_cancelled INTEGER NOT NULL DEFAULT 0'],
+    ['cancelled_at', 'ALTER TABLE ticket_costs ADD COLUMN cancelled_at TEXT'],
   ];
 
   for (const [name, sql] of migrations) {

@@ -2,6 +2,12 @@ const db = require('../database/db');
 
 const operationKeySql = "COALESCE(group_id, 'row-' || id)";
 
+const getReopenCeilingPercentage = () => {
+  const row = db.prepare("SELECT value FROM settings WHERE key = 'reopen_ceiling_percentage'").get();
+  const value = Number(row?.value ?? 100);
+  return Number.isFinite(value) && value >= 0 ? value : 100;
+};
+
 const getOperationRows = (operationKey, type, ticketId) => db.prepare(`
   SELECT *
   FROM ticket_costs
@@ -12,7 +18,6 @@ const getOperationRows = (operationKey, type, ticketId) => db.prepare(`
 const updateGroupTotal = (rows, total, extraValues = {}) => {
   if (!rows.length) return;
 
-  const previousTotal = rows.reduce((sum, row) => sum + Number(row.cout || 0), 0);
   const update = db.prepare(`
     UPDATE ticket_costs
     SET cout = ?, percentage = COALESCE(?, percentage),
@@ -22,15 +27,9 @@ const updateGroupTotal = (rows, total, extraValues = {}) => {
   `);
 
   rows.forEach((row, index) => {
-    const ratio = previousTotal > 0 ? Number(row.cout || 0) / previousTotal : 1 / rows.length;
     const amount = index === rows.length - 1
-      ? total - rows.slice(0, -1).reduce((sum, current) => {
-          const currentRatio = previousTotal > 0
-            ? Number(current.cout || 0) / previousTotal
-            : 1 / rows.length;
-          return sum + total * currentRatio;
-        }, 0)
-      : total * ratio;
+      ? total - (total / rows.length) * (rows.length - 1)
+      : total / rows.length;
 
     update.run(
       amount,
@@ -48,7 +47,7 @@ const getSuperOperationsBefore = (ticketId, beforeId) => db.prepare(`
     MIN(id) AS first_id,
     SUM(cout) AS total
   FROM ticket_costs
-  WHERE id_ticket = ? AND type_cout = 'super_cost' AND id < ?
+  WHERE id_ticket = ? AND type_cout = 'super_cost' AND id < ? AND is_cancelled = 0
   GROUP BY ${operationKeySql}
   ORDER BY first_id
 `).all(ticketId, beforeId);
@@ -101,19 +100,29 @@ const hydrateLegacyReopenMetadata = (ticketId = null) => {
   }
 };
 
-const recalculateReopensAfter = (ticketId, afterId) => {
+const recalculateTicketReopens = (ticketId) => {
   hydrateLegacyReopenMetadata(ticketId);
+  const ceilingPercentage = getReopenCeilingPercentage();
+  const superTotal = Number(db.prepare(`
+    SELECT COALESCE(SUM(cout), 0) AS total
+    FROM ticket_costs
+    WHERE id_ticket = ? AND type_cout = 'super_cost' AND is_cancelled = 0
+  `).get(ticketId).total || 0);
+  const ceilingAmount = superTotal * ceilingPercentage / 100;
+  let consumedAmount = 0;
+
   const reopenOperations = db.prepare(`
     SELECT
       ${operationKeySql} AS operation_key,
       MIN(id) AS first_id,
       MAX(percentage) AS percentage,
-      MAX(calculation_mode) AS calculation_mode
+      MAX(calculation_mode) AS calculation_mode,
+      MAX(is_cancelled) AS is_cancelled
     FROM ticket_costs
-    WHERE id_ticket = ? AND type_cout = 'reopen_cost' AND id > ?
+    WHERE id_ticket = ? AND type_cout = 'reopen_cost'
     GROUP BY ${operationKeySql}
     ORDER BY first_id
-  `).all(ticketId, afterId);
+  `).all(ticketId);
 
   for (const operation of reopenOperations) {
     const mode = Number(operation.calculation_mode || 1);
@@ -123,8 +132,24 @@ const recalculateReopensAfter = (ticketId, afterId) => {
       mode
     );
     const rows = getOperationRows(operation.operation_key, 'reopen_cost', ticketId);
-    updateGroupTotal(rows, base * percentage / 100, { percentage, mode, baseCost: base });
+    const requestedAmount = base * percentage / 100;
+    const availableAmount = Math.max(0, ceilingAmount - consumedAmount);
+    const cappedAmount = operation.is_cancelled
+      ? 0
+      : Math.min(requestedAmount, availableAmount);
+
+    updateGroupTotal(rows, cappedAmount, { percentage, mode, baseCost: base });
+    if (!operation.is_cancelled) {
+      consumedAmount += cappedAmount;
+    }
   }
+
+  return {
+    ceiling_percentage: ceilingPercentage,
+    ceiling_amount: ceilingAmount,
+    reopen_total: consumedAmount,
+    remaining_amount: Math.max(0, ceilingAmount - consumedAmount),
+  };
 };
 
 const getGroupedCostOperations = () => db.prepare(`
@@ -139,7 +164,9 @@ const getGroupedCostOperations = () => db.prepare(`
     MAX(percentage) AS percentage,
     MAX(calculation_mode) AS mode,
     MAX(base_cost) AS base_cost,
-    COUNT(*) AS batch_size
+    COUNT(*) AS batch_size,
+    MAX(is_cancelled) AS is_cancelled,
+    MAX(cancelled_at) AS cancelled_at
   FROM ticket_costs
   WHERE type_cout IN ('super_cost', 'reopen_cost')
   GROUP BY ${operationKeySql}, group_id, id_ticket, type_cout
@@ -169,6 +196,10 @@ const buildCostHistory = (operations) => {
         base_cost: null,
         reopen_created_at: null,
         reopen_batch_size: 0,
+        super_is_cancelled: Boolean(operation.is_cancelled),
+        super_cancelled_at: operation.cancelled_at,
+        reopen_is_cancelled: false,
+        reopen_cancelled_at: null,
       };
       history.push(row);
       currentSuperByTicket.set(ticketId, row);
@@ -184,6 +215,8 @@ const buildCostHistory = (operations) => {
       base_cost: Number(operation.base_cost || 0),
       reopen_created_at: operation.created_at,
       reopen_batch_size: operation.batch_size,
+      reopen_is_cancelled: Boolean(operation.is_cancelled),
+      reopen_cancelled_at: operation.cancelled_at,
     };
 
     if (currentSuper && !currentSuper.reopen_operation_key) {
@@ -198,6 +231,8 @@ const buildCostHistory = (operations) => {
         super_operation_key: currentSuper?.super_operation_key || null,
         super_cost: currentSuper?.super_cost ?? null,
         super_batch_size: currentSuper?.super_batch_size || 0,
+        super_is_cancelled: currentSuper?.super_is_cancelled || false,
+        super_cancelled_at: currentSuper?.super_cancelled_at || null,
         ...reopenValues,
       });
     }
@@ -216,6 +251,7 @@ exports.saveSuperCost = (req, res) => {
   try {
     const stmt = db.prepare('INSERT INTO ticket_costs (id_ticket, type_cout, cout, id_item, id_category, group_id, created_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)');
     stmt.run(ticket_id, 'super_cost', super_cost, id_item || null, id_category || null, group_id || null);
+    recalculateTicketReopens(Number(ticket_id));
     res.status(200).json({ message: 'Super cost saved successfully', ticket_id, super_cost });
   } catch (error) {
     console.error('Error saving super cost:', error);
@@ -225,7 +261,7 @@ exports.saveSuperCost = (req, res) => {
 
 exports.getAllSuperCosts = (req, res) => {
   try {
-    const stmt = db.prepare('SELECT id_ticket as ticket_id, cout as super_cost FROM ticket_costs WHERE type_cout = ?');
+    const stmt = db.prepare('SELECT id_ticket as ticket_id, cout as super_cost FROM ticket_costs WHERE type_cout = ? AND is_cancelled = 0');
     const results = stmt.all('super_cost');
     res.status(200).json(results);
   } catch (error) {
@@ -238,7 +274,7 @@ exports.getSuperCost = (req, res) => {
   const { ticket_id } = req.params;
 
   try {
-    const stmt = db.prepare('SELECT SUM(cout) as total_super_cost FROM ticket_costs WHERE id_ticket = ? AND type_cout = ?');
+    const stmt = db.prepare('SELECT SUM(cout) as total_super_cost FROM ticket_costs WHERE id_ticket = ? AND type_cout = ? AND is_cancelled = 0');
     const result = stmt.get(ticket_id, 'super_cost');
     
     if (result && result.total_super_cost !== null) {
@@ -255,19 +291,23 @@ exports.getSuperCost = (req, res) => {
 exports.deleteSuperCost = (req, res) => {
   const { ticket_id } = req.params;
   try {
-    const lastStmt = db.prepare('SELECT id, group_id FROM ticket_costs WHERE id_ticket = ? AND type_cout = ? ORDER BY id DESC LIMIT 1');
+    const lastStmt = db.prepare(`
+      SELECT id, ${operationKeySql} AS operation_key
+      FROM ticket_costs
+      WHERE id_ticket = ? AND type_cout = ? AND is_cancelled = 0
+      ORDER BY id DESC LIMIT 1
+    `);
     const lastRow = lastStmt.get(ticket_id, 'super_cost');
     
     if (lastRow) {
-      if (lastRow.group_id) {
-        const deleteStmt = db.prepare('DELETE FROM ticket_costs WHERE group_id = ? AND id_ticket = ? AND type_cout = ?');
-        deleteStmt.run(lastRow.group_id, ticket_id, 'super_cost');
-      } else {
-        const deleteStmt = db.prepare('DELETE FROM ticket_costs WHERE id = ?');
-        deleteStmt.run(lastRow.id);
-      }
+      db.prepare(`
+        UPDATE ticket_costs
+        SET is_cancelled = 1, cancelled_at = CURRENT_TIMESTAMP
+        WHERE ${operationKeySql} = ? AND id_ticket = ? AND type_cout = 'super_cost'
+      `).run(lastRow.operation_key, ticket_id);
+      recalculateTicketReopens(Number(ticket_id));
     }
-    res.status(200).json({ message: 'Deleted last super cost' });
+    res.status(200).json({ message: 'Last super cost cancelled' });
   } catch (error) {
     res.status(500).json({ error: 'Error' });
   }
@@ -279,14 +319,14 @@ exports.saveReopenCost = (req, res) => {
     const lastRow = db.prepare(`
       SELECT id, ${operationKeySql} AS operation_key
       FROM ticket_costs
-      WHERE id_ticket = ? AND type_cout = 'super_cost'
+      WHERE id_ticket = ? AND type_cout = 'super_cost' AND is_cancelled = 0
       ORDER BY id DESC LIMIT 1
     `).get(ticket_id);
     if (lastRow) {
       const baseCost = db.prepare(`
         SELECT SUM(cout) AS total
         FROM ticket_costs
-        WHERE ${operationKeySql} = ? AND id_ticket = ? AND type_cout = 'super_cost'
+        WHERE ${operationKeySql} = ? AND id_ticket = ? AND type_cout = 'super_cost' AND is_cancelled = 0
       `).get(lastRow.operation_key, ticket_id).total || 0;
       const reopen_cost = baseCost * (percentage / 100);
       const insertStmt = db.prepare(`
@@ -305,7 +345,15 @@ exports.saveReopenCost = (req, res) => {
         percentage,
         baseCost
       );
-      res.status(200).json({ reopen_cost });
+      const ceiling = recalculateTicketReopens(Number(ticket_id));
+      const actualOpKey = group_id || `row-${insertStmt.lastInsertRowid}`;
+      const actualTotal = db.prepare(`
+        SELECT SUM(cout) AS total
+        FROM ticket_costs
+        WHERE ${operationKeySql} = ? AND id_ticket = ? AND type_cout = 'reopen_cost'
+      `).get(actualOpKey, Number(ticket_id));
+      const actualCost = Number(actualTotal?.total || 0);
+      res.status(200).json({ reopen_cost: actualCost, initial_reopen_cost: reopen_cost, ceiling });
     } else {
       res.status(404).json({ error: 'Not found' });
     }
@@ -316,7 +364,7 @@ exports.saveReopenCost = (req, res) => {
 
 exports.getAllReopenCosts = (req, res) => {
   try {
-    const stmt = db.prepare('SELECT id_ticket as ticket_id, cout as reopen_cost FROM ticket_costs WHERE type_cout = ?');
+    const stmt = db.prepare('SELECT id_ticket as ticket_id, cout as reopen_cost FROM ticket_costs WHERE type_cout = ? AND is_cancelled = 0');
     const results = stmt.all('reopen_cost');
     res.status(200).json(results);
   } catch (error) {
@@ -332,25 +380,25 @@ exports.calculateBaseCost = (req, res) => {
     let base_cost = 0;
     
     if (modeInt === 1) { // Dernier super cost
-      const lastRow = db.prepare("SELECT group_id, cout FROM ticket_costs WHERE id_ticket = ? AND type_cout = 'super_cost' ORDER BY id DESC LIMIT 1").get(ticket_id);
+      const lastRow = db.prepare("SELECT group_id, cout FROM ticket_costs WHERE id_ticket = ? AND type_cout = 'super_cost' AND is_cancelled = 0 ORDER BY id DESC LIMIT 1").get(ticket_id);
       if (lastRow) {
         if (lastRow.group_id) {
-          base_cost = db.prepare("SELECT SUM(cout) as total FROM ticket_costs WHERE group_id = ? AND id_ticket = ? AND type_cout = 'super_cost'").get(lastRow.group_id, ticket_id).total;
+          base_cost = db.prepare("SELECT SUM(cout) as total FROM ticket_costs WHERE group_id = ? AND id_ticket = ? AND type_cout = 'super_cost' AND is_cancelled = 0").get(lastRow.group_id, ticket_id).total;
         } else {
           base_cost = lastRow.cout;
         }
       }
     } else if (modeInt === 2) { // Premier super cost
-      const firstRow = db.prepare("SELECT group_id, cout FROM ticket_costs WHERE id_ticket = ? AND type_cout = 'super_cost' ORDER BY id ASC LIMIT 1").get(ticket_id);
+      const firstRow = db.prepare("SELECT group_id, cout FROM ticket_costs WHERE id_ticket = ? AND type_cout = 'super_cost' AND is_cancelled = 0 ORDER BY id ASC LIMIT 1").get(ticket_id);
       if (firstRow) {
         if (firstRow.group_id) {
-          base_cost = db.prepare("SELECT SUM(cout) as total FROM ticket_costs WHERE group_id = ? AND id_ticket = ? AND type_cout = 'super_cost'").get(firstRow.group_id, ticket_id).total;
+          base_cost = db.prepare("SELECT SUM(cout) as total FROM ticket_costs WHERE group_id = ? AND id_ticket = ? AND type_cout = 'super_cost' AND is_cancelled = 0").get(firstRow.group_id, ticket_id).total;
         } else {
           base_cost = firstRow.cout;
         }
       }
     } else if (modeInt === 3) { // Moyenne des supercosts
-      const allRows = db.prepare("SELECT id, group_id, cout FROM ticket_costs WHERE id_ticket = ? AND type_cout = 'super_cost'").all(ticket_id);
+      const allRows = db.prepare("SELECT id, group_id, cout FROM ticket_costs WHERE id_ticket = ? AND type_cout = 'super_cost' AND is_cancelled = 0").all(ticket_id);
       let totalSum = 0;
       let groups = new Set();
       let nullGroupCount = 0;
@@ -365,7 +413,7 @@ exports.calculateBaseCost = (req, res) => {
       const count = groups.size + nullGroupCount;
       base_cost = count > 0 ? totalSum / count : 0;
     } else if (modeInt === 4) { // Somme des supercosts
-      const sumRow = db.prepare("SELECT SUM(cout) as total FROM ticket_costs WHERE id_ticket = ? AND type_cout = 'super_cost'").get(ticket_id);
+      const sumRow = db.prepare("SELECT SUM(cout) as total FROM ticket_costs WHERE id_ticket = ? AND type_cout = 'super_cost' AND is_cancelled = 0").get(ticket_id);
       base_cost = sumRow ? sumRow.total || 0 : 0;
     } else {
       return res.status(400).json({ error: 'Invalid mode' });
@@ -398,7 +446,15 @@ exports.saveCustomReopenCost = (req, res) => {
       mode ?? null,
       base_cost ?? null
     );
-    res.status(200).json({ reopen_cost: calculated_cost });
+    const ceiling = recalculateTicketReopens(Number(ticket_id));
+    const actualOpKey = group_id || `row-${insertStmt.lastInsertRowid}`;
+    const actualTotal = db.prepare(`
+      SELECT SUM(cout) AS total
+      FROM ticket_costs
+      WHERE ${operationKeySql} = ? AND id_ticket = ? AND type_cout = 'reopen_cost'
+    `).get(actualOpKey, Number(ticket_id));
+    const actualCost = Number(actualTotal?.total || 0);
+    res.status(200).json({ reopen_cost: actualCost, initial_cost: calculated_cost, ceiling });
   } catch (error) {
     console.error('Error saving custom reopen cost:', error);
     res.status(500).json({ error: 'Failed to save custom reopen cost' });
@@ -408,7 +464,27 @@ exports.saveCustomReopenCost = (req, res) => {
 exports.getCostOperations = (req, res) => {
   try {
     hydrateLegacyReopenMetadata();
-    res.json(buildCostHistory(getGroupedCostOperations()));
+    const tickets = db.prepare('SELECT DISTINCT id_ticket FROM ticket_costs').all();
+    tickets.forEach(({ id_ticket }) => recalculateTicketReopens(Number(id_ticket)));
+    const ceilingPercentage = getReopenCeilingPercentage();
+    const operations = getGroupedCostOperations()
+      .sort((a, b) => b.first_id - a.first_id)
+      .map(operation => ({
+      operation_key: operation.operation_key,
+      ticket_id: Number(operation.ticket_id),
+      type_cout: operation.type_cout,
+      first_id: operation.first_id,
+      created_at: operation.created_at,
+      total_cost: Number(operation.total_cost || 0),
+      percentage: operation.percentage === null ? null : Number(operation.percentage),
+      mode: operation.mode === null ? null : Number(operation.mode),
+      base_cost: operation.base_cost === null ? null : Number(operation.base_cost),
+      batch_size: Number(operation.batch_size || 0),
+      is_deleted: Boolean(operation.is_cancelled),
+      deleted_at: operation.cancelled_at,
+      ceiling_percentage: ceilingPercentage,
+    }));
+    res.json(operations);
   } catch (error) {
     console.error('Error getting cost operations:', error);
     res.status(500).json({ error: 'Failed to load cost operations', details: error.message });
@@ -445,7 +521,7 @@ exports.updateCostOperation = (req, res) => {
           throw error;
         }
         updateGroupTotal(rows, parsedValue);
-        recalculateReopensAfter(operation.id_ticket, operation.first_id);
+        recalculateTicketReopens(operation.id_ticket);
       } else {
         if (!Number.isFinite(parsedPercentage) || parsedPercentage < 0 || ![1, 2, 3, 4].includes(parsedMode)) {
           const error = new Error('Invalid reopen percentage or mode');
@@ -461,6 +537,7 @@ exports.updateCostOperation = (req, res) => {
           mode: parsedMode,
           baseCost: base,
         });
+        recalculateTicketReopens(operation.id_ticket);
       }
 
       return { ticketId: operation.id_ticket, type: operation.type_cout };
@@ -470,5 +547,54 @@ exports.updateCostOperation = (req, res) => {
   } catch (error) {
     console.error('Error updating cost operation:', error);
     res.status(error.statusCode || 500).json({ error: error.message });
+  }
+};
+
+exports.setOperationCancellation = (req, res) => {
+  const { operationKey } = req.params;
+  const { ticket_id, type_cout, is_cancelled } = req.body;
+  const cancelled = Boolean(is_cancelled);
+
+  try {
+    const result = db.transaction(() => {
+      const operation = db.prepare(`
+        SELECT MIN(id) AS first_id
+        FROM ticket_costs
+        WHERE ${operationKeySql} = ? AND id_ticket = ? AND type_cout = ?
+      `).get(operationKey, ticket_id, type_cout);
+
+      if (!operation?.first_id) {
+        const error = new Error('Operation not found');
+        error.statusCode = 404;
+        throw error;
+      }
+
+      db.prepare(`
+        UPDATE ticket_costs
+        SET is_cancelled = ?, cancelled_at = CASE WHEN ? = 1 THEN CURRENT_TIMESTAMP ELSE NULL END
+        WHERE ${operationKeySql} = ? AND id_ticket = ? AND type_cout = ?
+      `).run(cancelled ? 1 : 0, cancelled ? 1 : 0, operationKey, ticket_id, type_cout);
+
+      const ceiling = recalculateTicketReopens(Number(ticket_id));
+      return { ticketId: Number(ticket_id), type: type_cout, isCancelled: cancelled, ceiling };
+    })();
+
+    res.json({ message: cancelled ? 'Operation cancelled' : 'Operation restored', ...result });
+  } catch (error) {
+    console.error('Error changing operation cancellation:', error);
+    res.status(error.statusCode || 500).json({ error: error.message });
+  }
+};
+
+exports.recalculateAllTicketCeilings = (req, res) => {
+  try {
+    const tickets = db.prepare('SELECT DISTINCT id_ticket FROM ticket_costs').all();
+    const results = tickets.map(({ id_ticket }) => ({
+      ticket_id: Number(id_ticket),
+      ...recalculateTicketReopens(Number(id_ticket)),
+    }));
+    res.json({ message: 'All ticket reopen ceilings recalculated', results });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

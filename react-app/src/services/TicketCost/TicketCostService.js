@@ -181,6 +181,19 @@ const TicketCostService = {
       payload
     );
     return response.data;
+  },
+
+  setOperationCancellation: async (operationKey, payload) => {
+    const response = await axios.patch(
+      `${TICKETCOST_API_URL}/operations/${encodeURIComponent(operationKey)}/cancellation`,
+      payload
+    );
+    return response.data;
+  },
+
+  recalculateCeilings: async () => {
+    const response = await axios.post(`${TICKETCOST_API_URL}/operations/recalculate-ceilings`);
+    return response.data;
   }
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import SettingsService from '../../../services/Settings/SettingsService';
 import '../../../styles/AdminSettings.css';
 
@@ -20,6 +20,7 @@ const AdminSettings = () => {
   ]);
 
   const [selectedLanguageId, setSelectedLanguageId] = useState(1);
+  const [reopenCeilingPercentage, setReopenCeilingPercentage] = useState('100');
 
   const [translations, setTranslations] = useState({
     1: { label_nouveau: 'Nouveau', label_inProgress: 'In progress (assigné)', label_termine: 'Terminé' },
@@ -37,6 +38,7 @@ const AdminSettings = () => {
           color_termine: data.color_termine || '#10b981'
         });
         setSelectedLanguageId(parseInt(data.selected_language_id) || 1);
+        setReopenCeilingPercentage(String(data.reopen_ceiling_percentage ?? '100'));
         if (data.languages) {
           setLanguages(data.languages);
         }
@@ -74,6 +76,7 @@ const AdminSettings = () => {
         color_inProgress: colors.color_inProgress,
         color_termine: colors.color_termine,
         selected_language_id: String(selectedLanguageId),
+        reopen_ceiling_percentage: String(reopenCeilingPercentage),
         all_translations: translations
       };
 
@@ -248,6 +251,30 @@ const AdminSettings = () => {
                     required
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="admin-section" style={{ marginBottom: '30px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px', marginBottom: '20px' }}>
+                iv. Plafond des réouvertures
+              </h3>
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '360px' }}>
+                <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#475569' }}>
+                  Plafond de réouverture (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={reopenCeilingPercentage}
+                  onChange={e => setReopenCeilingPercentage(e.target.value)}
+                  style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                  required
+                />
+                <small style={{ color: '#64748b', lineHeight: 1.5 }}>
+                  Le plafond de chaque ticket est égal à la somme de ses supercosts actifs multipliée par ce pourcentage.
+                  Une fois le plafond atteint, les réouvertures suivantes valent 0.
+                </small>
               </div>
             </div>
 
