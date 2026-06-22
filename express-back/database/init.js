@@ -5,7 +5,7 @@ const DEFAULT_SETTINGS = [
   { key: 'color_inProgress', value: '#f59e0b' },
   { key: 'color_termine', value: '#10b981' },
   { key: 'selected_language_id', value: '1' },
-  { key: 'reopen_ceiling_percentage', value: '100' }
+  { key: 'reopen_ceiling_percentage', value: '50' }
 ];
 
 const DEFAULT_LANGUAGES = [
