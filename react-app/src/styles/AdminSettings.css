@@ -1,0 +1,26 @@
+/* src/styles/AdminSettings.css - WordPress dashboard themed alerts for admin settings */
+
+.admin-settings-alert {
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #ccd0d4;
+  border-left-width: 4px;
+  background: #ffffff;
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.admin-settings-alert-success {
+  border-left-color: #00a32a;
+  color: #2c3338;
+}
+
+.admin-settings-alert-error {
+  border-left-color: #d63638;
+  color: #2c3338;
+}

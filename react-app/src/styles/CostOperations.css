@@ -1,0 +1,67 @@
+.cost-operations-page { gap: 20px; }
+.cost-operations-header { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.cost-operations-header h1 { margin: 0 0 6px; color: #1d2327; font-size: 23px; font-weight: 500; }
+.cost-operations-header p { margin: 0; color: #646970; font-size: 13px; }
+.cost-refresh-button, .operation-actions button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  border: 1px solid #2271b1; border-radius: 3px; background: #2271b1; color: #fff;
+  padding: 7px 12px; cursor: pointer; font-weight: 600;
+}
+.cost-refresh-button:disabled { cursor: wait; opacity: .65; }
+.is-spinning { animation: cost-spin .8s linear infinite; }
+@keyframes cost-spin { to { transform: rotate(360deg); } }
+.cost-summary-grid { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: 14px; }
+.cost-summary-card {
+  display: flex; flex-direction: column; gap: 8px; background: #fff; border: 1px solid #c3c4c7;
+  border-left: 4px solid #646970; border-radius: 4px; padding: 16px 18px;
+}
+.cost-summary-card.super { border-left-color: #8b5cf6; }
+.cost-summary-card.reopen { border-left-color: #d63638; }
+.cost-summary-card span { color: #646970; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+.cost-summary-card strong { color: #1d2327; font-size: 25px; }
+.cost-operations-card { width: 100%; overflow: hidden; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; }
+.cost-operations-state { padding: 48px 20px; color: #646970; text-align: center; }
+.cost-operations-table-wrap { width: 100%; overflow-x: auto; }
+.cost-operations-table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+.cost-operations-table th, .cost-operations-table td {
+  padding: 11px 14px; border-bottom: 1px solid #f0f0f1; color: #2c3338; font-size: 13px; text-align: left;
+}
+.cost-operations-table th { background: #f6f7f7; border-bottom-color: #c3c4c7; font-weight: 600; }
+.cost-operations-table tbody tr:hover { background: #f6f7f7; }
+.operation-type {
+  display: inline-flex; padding: 3px 8px; border: 1px solid; border-radius: 999px; font-size: 11px; font-weight: 700;
+}
+.operation-type.super_cost { border-color: #c4b5fd; background: #f5f3ff; color: #6d28d9; }
+.operation-type.reopen_cost { border-color: #fca5a5; background: #fef2f2; color: #b91c1c; }
+.operation-amount { font-weight: 700; }
+.operation-actions { text-align: right !important; }
+.operation-actions button { border-color: #8c8f94; background: #fff; color: #2271b1; padding: 5px 9px; }
+.cost-modal-overlay {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 20px; background: rgba(29, 35, 39, .62);
+}
+.cost-modal { width: min(480px, 100%); overflow: hidden; background: #fff; border-radius: 5px; box-shadow: 0 18px 60px rgba(0, 0, 0, .3); }
+.cost-modal-header { display: flex; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid #dcdcde; }
+.cost-modal-header h2 { margin: 0 0 4px; color: #1d2327; font-size: 18px; }
+.cost-modal-header p { margin: 0; color: #646970; font-size: 12px; }
+.cost-modal-close { align-self: flex-start; border: 0; background: transparent; color: #646970; cursor: pointer; }
+.cost-modal-body { display: flex; flex-direction: column; gap: 8px; padding: 20px; }
+.cost-modal-body label { margin-top: 5px; color: #2c3338; font-size: 13px; font-weight: 600; }
+.cost-modal-body input, .cost-modal-body select {
+  width: 100%; box-sizing: border-box; border: 1px solid #8c8f94; border-radius: 3px; background: #fff; padding: 8px 10px; color: #2c3338;
+}
+.cost-modal-body input:focus, .cost-modal-body select:focus { border-color: #2271b1; outline: 1px solid #2271b1; }
+.cost-modal-notice {
+  margin-top: 10px; border-left: 4px solid #dba617; background: #fcf9e8; padding: 10px 12px;
+  color: #50575e; font-size: 12px; line-height: 1.5;
+}
+.cost-modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid #dcdcde; background: #f6f7f7;
+}
+.cost-modal-footer button { border: 1px solid #2271b1; border-radius: 3px; padding: 7px 14px; cursor: pointer; font-weight: 600; }
+.cost-modal-footer .secondary { background: #fff; color: #2271b1; }
+.cost-modal-footer .primary { background: #2271b1; color: #fff; }
+.cost-modal-footer button:disabled { cursor: wait; opacity: .6; }
+@media (max-width: 760px) {
+  .cost-operations-header { flex-direction: column; }
+  .cost-summary-grid { grid-template-columns: 1fr; }
+}

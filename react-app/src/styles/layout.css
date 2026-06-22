@@ -1,0 +1,434 @@
+/* src/styles/layout.css - Combines Layout, Header, and Sidebar styles in WordPress Admin dashboard theme */
+
+/* ── Layout Styles ── */
+.admin-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg-general);
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+.content-area {
+  flex: 1;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* WordPress Metabox Style */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: -20px;
+  margin-left: -24px;
+  margin-right: -24px;
+  margin-bottom: 20px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--text-primary);
+  background: #ffffff;
+}
+
+.card-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* WordPress Admin Container Style */
+.page-container {
+  width: 100%;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-height: calc(100vh - var(--header-height));
+  box-sizing: border-box;
+}
+
+/* ── Header Styles (WordPress Admin Bar) ── */
+.header {
+  position: sticky;
+  top: 0;
+  right: 0;
+  height: var(--header-height);
+  background: #1d2327;
+  border-bottom: 1px solid #2c3338;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 90;
+  transition: var(--transition);
+  color: #f0f0f1;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-toggle {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #a7aaad;
+  transition: none;
+}
+
+.header-toggle:hover {
+  background: transparent;
+  color: #72aee6;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  height: var(--header-height);
+}
+
+.user-menu:hover {
+  background: transparent;
+}
+
+/* FrontOffice Button styled as WP admin bar button */
+.frontoffice-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: #f0f0f1;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 4px 10px;
+  background: #2c3338;
+  border: 1px solid #4f565d;
+  border-radius: var(--radius-sm);
+  transition: none;
+}
+
+.frontoffice-btn:hover {
+  background: #2271b1;
+  border-color: #2271b1;
+  color: #ffffff;
+}
+
+.user-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #50575e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #f0f0f1;
+}
+
+.user-role {
+  font-size: 11px;
+  color: #a7aaad;
+}
+
+.header-logout-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a7aaad;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  transition: none;
+}
+
+.header-logout-btn:hover {
+  color: #b32d2e;
+}
+
+/* ── Sidebar Styles (WordPress Left Menu) ── */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: var(--sidebar-width);
+  background: #1d2327;
+  border-right: none;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+  z-index: 100;
+  overflow: hidden;
+  color: #f0f0f1;
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+.sidebar-header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid #2c3338;
+  background: #1d2327;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
+
+.sidebar.collapsed .sidebar-logo-text {
+  opacity: 0;
+  width: 0;
+}
+
+.sidebar-toggle {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #a7aaad;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle:hover {
+  color: #72aee6;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 8px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: #4f565d;
+  border-radius: 4px;
+}
+
+a.nav-item,
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 0;
+  text-decoration: none;
+  color: #f0f0f1;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: none;
+  white-space: nowrap;
+  position: relative;
+  border-left: 4px solid transparent;
+}
+
+a.nav-item:hover,
+.nav-item:hover {
+  background: #2c3338;
+  color: #72aee6;
+}
+
+a.nav-item.active,
+.nav-item.active {
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+  border-left-color: #72aee6;
+}
+
+.nav-item-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.nav-item span,
+.nav-item-content span {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .nav-item span,
+.sidebar.collapsed .nav-item-content span,
+.sidebar.collapsed .chevron-icon {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 10px;
+  gap: 0;
+  border-left: none;
+}
+
+.sidebar.collapsed .nav-item-content {
+  gap: 0;
+}
+
+.chevron-icon {
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  color: #a7aaad;
+  flex-shrink: 0;
+}
+
+.chevron-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.nav-submenu {
+  overflow: hidden;
+  max-height: 0;
+  background: #2c3338;
+  transition: max-height 0.25s ease;
+}
+
+.nav-submenu.open {
+  max-height: 600px;
+}
+
+.sidebar.collapsed .nav-submenu {
+  max-height: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px 8px 42px;
+  border-radius: 0;
+  text-decoration: none;
+  color: #c3c4c7;
+  font-size: 13px;
+  font-weight: 400;
+  transition: none;
+  white-space: nowrap;
+  gap: 8px;
+}
+
+.submenu-item::before {
+  display: none !important;
+}
+
+.submenu-item:hover {
+  color: #72aee6;
+  background: transparent;
+}
+
+.submenu-item.active {
+  color: #ffffff;
+  background: transparent;
+  font-weight: 600;
+}

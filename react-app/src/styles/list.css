@@ -1,0 +1,277 @@
+/* src/styles/list.css - Consolidated WordPress-themed list pages CSS */
+
+/* ── General Header Style ── */
+.page-header {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 400;
+  color: #1d2327;
+  display: inline-block;
+}
+
+/* ── Filters & Options Bar ── */
+.filters-bar {
+  background: #ffffff;
+  border: 1px solid #ccd0d4;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #4f565d;
+  font-size: 13px;
+}
+
+.filter-select,
+.per-page-select {
+  padding: 4px 24px 4px 8px;
+  border: 1px solid #8c8f94;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 2;
+  background: #ffffff;
+  color: #2c3338;
+  cursor: pointer;
+  min-height: 30px;
+  outline: none;
+}
+
+.filter-select:focus,
+.per-page-select:focus {
+  border-color: #2271b1;
+  box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* ── Parc List Styles ── */
+.parc-list-page {
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.parc-table-container,
+.ticket-table-container {
+  width: 100%;
+  overflow-x: auto;
+  background: #ffffff;
+  border: 1px solid #c3c4c7;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+.parc-table,
+.ticket-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  text-align: left;
+}
+
+.parc-table {
+  min-width: 1600px;
+}
+
+.parc-table thead,
+.ticket-table thead {
+  background: #fafafa;
+}
+
+.parc-table th,
+.ticket-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3338;
+  border-bottom: 1px solid #c3c4c7;
+  white-space: nowrap;
+}
+
+.parc-table td,
+.ticket-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f1;
+  font-size: 13px;
+  color: #2c3338;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+.parc-table tbody tr:hover,
+.ticket-table tbody tr:hover {
+  background: #f6f7f7;
+}
+
+.parc-table tbody tr:nth-child(even),
+.ticket-table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.parc-table tbody tr:nth-child(even):hover,
+.ticket-table tbody tr:nth-child(even):hover {
+  background: #f6f7f7;
+}
+
+.parc-table .item-name,
+.ticket-title {
+  font-weight: 600;
+  color: #2271b1;
+  text-decoration: none;
+}
+
+.parc-table .item-name:hover,
+.ticket-title:hover {
+  color: #135e96;
+}
+
+.parc-table .action-cell,
+.ticket-list-page .action-cell {
+  white-space: nowrap;
+}
+
+/* Row Action Buttons styled as WP secondary buttons */
+.parc-table .action-btn,
+.ticket-list-page .action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #ccd0d4;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  color: #2271b1;
+  background: #f6f7f7;
+  cursor: pointer;
+  transition: none;
+}
+
+.parc-table .action-btn:hover,
+.ticket-list-page .action-btn:hover {
+  background: #f0f0f1;
+  border-color: #8c8f94;
+  color: #135e96;
+}
+
+/* ── Ticket List Styles ── */
+.ticket-list-page {
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.ticket-list-page .page-header h1 {
+  margin-bottom: 20px;
+}
+
+/* Status & Priority Badges formatted in flat text styles */
+.ticket-list-page .status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f0f0f1;
+  border: 1px solid #c3c4c7;
+  color: #2c3338;
+}
+
+.ticket-list-page .priority-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.ticket-user {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #2c3338;
+}
+
+.ticket-list-page .loading-state,
+.ticket-list-page .empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #4f565d;
+  font-size: 14px;
+}
+
+/* ── Pagination Styling (WordPress Pagination) ── */
+.pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #c3c4c7;
+  border-top: none;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-btn {
+  padding: 4px 10px;
+  border: 1px solid #ccd0d4;
+  border-radius: 3px;
+  background: #f6f7f7;
+  color: #2271b1;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: none;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f0f0f1;
+  border-color: #8c8f94;
+  color: #135e96;
+}
+
+.pagination-btn:disabled {
+  background: #f6f7f7;
+  border-color: #dcdcde;
+  color: #a7aaad;
+  cursor: not-allowed;
+}
+
+.pagination-info-text {
+  font-size: 13px;
+  color: #2c3338;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

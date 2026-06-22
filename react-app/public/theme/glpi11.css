@@ -1,0 +1,40 @@
+:root {
+  --glpi-primary: #2563eb;
+  --glpi-primary-dark: #1d4ed8;
+  --glpi-secondary: #64748b;
+  --glpi-success: #16a34a;
+  --glpi-warning: #d97706;
+  --glpi-danger: #dc2626;
+  --glpi-bg: #f1f5f9;
+  --glpi-sidebar-bg: #1e293b;
+  --glpi-sidebar-hover: #334155;
+  --glpi-text: #0f172a;
+  --glpi-text-light: #475569;
+  --glpi-border: #e2e8f0;
+  --glpi-white: #ffffff;
+  --glpi-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --glpi-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --glpi-radius: 8px;
+  --glpi-radius-lg: 12px;
+  --glpi-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--glpi-bg);
+  color: var(--glpi-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.2;
+}

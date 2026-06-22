@@ -1,0 +1,284 @@
+/* src/styles/detail.css - Consolidated WordPress-themed details pages CSS */
+
+/* ── Parc Detail Styles ── */
+.parc-detail-page {
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.detail-header {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-header h1 {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 400;
+  color: #1d2327;
+}
+
+/* Back Button styled as a WP secondary button */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 3px;
+  border: 1px solid #ccd0d4;
+  background: #f6f7f7;
+  color: #2271b1;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  width: fit-content;
+  cursor: pointer;
+  transition: none;
+}
+
+.back-btn:hover {
+  background: #f0f0f1;
+  border-color: #8c8f94;
+  color: #135e96;
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* WordPress Metabox Style for Details */
+.detail-card {
+  background: #ffffff;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.detail-card h2 {
+  margin: -16px -20px 16px -20px;
+  padding: 10px 20px;
+  font-size: 14px;
+  color: #1d2327;
+  font-weight: 600;
+  border-bottom: 1px solid #c3c4c7;
+  background: #ffffff;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: #2c3338;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.detail-value {
+  font-size: 13px;
+  color: #4f565d;
+  font-weight: 400;
+}
+
+/* ── Ticket Detail Styles ── */
+.ticket-detail-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.ticket-detail-page .back-btn {
+  margin-bottom: 16px;
+  text-decoration: none;
+}
+
+.ticket-detail-page .detail-header h1 {
+  color: #1d2327;
+}
+
+.ticket-detail-page .detail-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+}
+
+.ticket-detail-page .detail-card h2 {
+  color: #1d2327;
+}
+
+.ticket-detail-page .detail-grid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.ticket-detail-page .detail-item {
+  gap: 4px;
+}
+
+.ticket-detail-page .detail-label {
+  color: #2c3338;
+}
+
+.ticket-detail-page .detail-value {
+  color: #4f565d;
+  font-size: 13px;
+}
+
+.detail-description {
+  padding: 12px 16px;
+  background: #f6f7f7;
+  border: 1px solid #c3c4c7;
+  border-radius: 3px;
+  color: #2c3338;
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.loading-state,
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #4f565d;
+  font-size: 14px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f0f0f1;
+  border: 1px solid #c3c4c7;
+  color: #2c3338;
+}
+
+.priority-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+/* WP Style linked lists tables */
+.linked-items-table-container,
+.documents-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 10px;
+  border: 1px solid #c3c4c7;
+}
+
+.linked-items-table,
+.documents-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.linked-items-table thead,
+.documents-table thead {
+  background: #fafafa;
+}
+
+.linked-items-table th,
+.documents-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c3338;
+  border-bottom: 1px solid #c3c4c7;
+  white-space: nowrap;
+}
+
+.linked-items-table td,
+.documents-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f1;
+  font-size: 13px;
+  color: #2c3338;
+}
+
+.linked-items-table tbody tr:hover,
+.documents-table tbody tr:hover {
+  background: #f6f7f7;
+}
+
+.linked-items-table tbody tr:nth-child(even),
+.documents-table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.linked-items-table tbody tr:nth-child(even):hover,
+.documents-table tbody tr:nth-child(even):hover {
+  background: #f6f7f7;
+}
+
+.linked-items-table tfoot .cost-total-row {
+  background: #f6f7f7;
+  border-top: 2px solid #ccd0d4;
+}
+
+.linked-items-table tfoot .cost-total-row td {
+  font-weight: 700;
+  font-size: 13px;
+  color: #1d2327;
+  border-bottom: none;
+}
+
+.item-name-cell {
+  font-weight: 600;
+}
+
+.item-actions-cell {
+  white-space: nowrap;
+}
+
+/* Small secondary actions buttons */
+.view-item-link,
+.download-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #ccd0d4;
+  border-radius: 3px;
+  background: #f6f7f7;
+  color: #2271b1;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: none;
+  cursor: pointer;
+}
+
+.view-item-link:hover,
+.download-link:hover {
+  background: #f0f0f1;
+  border-color: #8c8f94;
+  color: #135e96;
+}
